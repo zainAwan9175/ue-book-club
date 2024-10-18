@@ -13,10 +13,14 @@ export const createbook = async (req, res) => {
     // Send success response
     res.status(200).json({ message: "Success", book: savedBook });
   } catch (error) {
-    // Handle any errors during the save process
-    res.status(500).json({ message: "Error saving book", error });
+    console.error("Error details:", error); // Log the entire error object for debugging
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: "Validation error", errors: error.errors });
+    }
+    res.status(500).json({ message: "Error saving book", error: error.message });
   }
 };
+
 
 
 export const editBook = async (req, res) => {

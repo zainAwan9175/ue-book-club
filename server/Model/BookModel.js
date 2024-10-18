@@ -31,7 +31,7 @@ const BookSchema=mongoose.Schema({
     },
     clicks:{
         type:Number,
-        
+        default: 0, 
         
     }
 
