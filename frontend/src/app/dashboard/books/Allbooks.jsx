@@ -1,13 +1,17 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { FaRegHeart, FaHeart, FaNewspaper } from "react-icons/fa6";
 import { GiBookmark, GiBookshelf, GiDramaMasks, GiHeartInside, GiMagnifyingGlass, GiRocketFlight, GiSpellBook } from "react-icons/gi";
+import { BsStars } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
-import axios from "axios"; // Import Axios
+import axios from "axios";
 
 const genres = [
+  { name: "All", icon: <BsStars /> },
   { name: "Fiction", icon: <GiSpellBook /> },
   { name: "Non-Fiction", icon: <FaNewspaper /> },
   { name: "Mystery", icon: <GiMagnifyingGlass /> },
@@ -18,11 +22,13 @@ const genres = [
   { name: "History", icon: <GiBookshelf /> },
 ];
 
+const placeholderImage = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=2730&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+
 const Allbooks = () => {
-  const [allbooks, setAllBooks] = useState([]); // Initialize state for books
+  const [allbooks, setAllBooks] = useState([]);
   const [favorites, setFavorites] = useState([]);
-  const [filteredBooks, setFilteredBooks] = useState([]); // State for filtered books
-  const [selectedGenre, setSelectedGenre] = useState(""); // State for selected genre
+  const [filteredBooks, setFilteredBooks] = useState([]);
+  const [selectedGenre, setSelectedGenre] = useState("All");
 
   const toggleFavorite = (id) => {
     setFavorites((prev) =>
@@ -30,7 +36,6 @@ const Allbooks = () => {
     );
   };
 
-  // Fetch books from the backend
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -41,29 +46,27 @@ const Allbooks = () => {
             'Expires': '0'
           }
         });
-        console.log("Response data:", response.data); // Log the fetched data
 
         if (Array.isArray(response.data.books)) {
-          setAllBooks(response.data.books); // Set fetched data to allbooks
-          setFilteredBooks(response.data.books); // Initialize with all books
+          setAllBooks(response.data.books);
+          setFilteredBooks(response.data.books);
         } else {
           console.error("Fetched data is not an array:", response.data.books);
-          setAllBooks([]); // Optionally reset to an empty array
+          setAllBooks([]);
         }
       } catch (error) {
         console.error("Error fetching books:", error);
-        setAllBooks([]); // Optionally reset to an empty array on error
+        setAllBooks([]);
       }
     };
 
     fetchBooks();
-  }, []); 
+  }, []);
 
-  // Filter books based on selected genre
   const filterBooksByGenre = (genre) => {
     setSelectedGenre(genre);
-    if (genre === "") {
-      setFilteredBooks(allbooks); // Show all books if no genre is selected
+    if (genre === "All") {
+      setFilteredBooks(allbooks);
     } else {
       const filtered = allbooks.filter((book) =>
         book.genre.toLowerCase() === genre.toLowerCase()
@@ -74,21 +77,22 @@ const Allbooks = () => {
 
   return (
     <section className="mb-12 mx-8">
-      {/* Genres Section */}
       <section className="mb-12">
         <h1 className="text-2xl text-center p-3 font-bold mb-4 text-gray-800">
-          ALL Genres
+          All Genres
         </h1>
         <div className="grid grid-cols-2 mx-9 sm:grid-cols-4 md:grid-cols-8 gap-4">
           {genres.map((genre, index) => (
             <motion.div
               key={genre.name}
-              className="bg-white p-4 rounded-lg shadow-md text-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
+              className={`bg-white p-4 rounded-lg shadow-md text-center cursor-pointer hover:shadow-lg transition-shadow duration-300 ${
+                selectedGenre === genre.name ? 'ring-2 ring-green-500' : ''
+              }`}
               whileHover={{ scale: 1.1 }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.1, delay: index * 0.1 }}
-              onClick={() => filterBooksByGenre(genre.name)} // Click event to filter books
+              onClick={() => filterBooksByGenre(genre.name)}
             >
               <div className="text-4xl mb-2 text-green-600 mx-auto">
                 {genre.icon}
@@ -100,10 +104,9 @@ const Allbooks = () => {
       </section>
 
       <h2 className="text-2xl font-bold mb-6 text-center justify-center text-gray-800 flex items-center">
-        Explore All Books
+        Explore {selectedGenre === "All" ? "All Books" : `${selectedGenre} Books`}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {/* Check if filteredBooks is an array before mapping */}
         {Array.isArray(filteredBooks) && filteredBooks.length > 0 ? (
           filteredBooks.map((book, index) => (
             <motion.div
@@ -114,7 +117,7 @@ const Allbooks = () => {
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
               <Image
-                src={book.imageurls} // Use the correct property for image URLs
+                src={book.imageurls || placeholderImage}
                 alt={book.name}
                 width={300}
                 height={400}
@@ -144,7 +147,7 @@ const Allbooks = () => {
             </motion.div>
           ))
         ) : (
-          <p className="text-center text-gray-600">No books available</p>
+          <p className="text-center text-gray-600 col-span-full">No books available for this genre</p>
         )}
       </div>
     </section>
