@@ -7,7 +7,7 @@ const page = () => {
   return (
     <>
     <Navbar/>
-   <Genres/>
+
    <Allbooks/>
    <Footer/>
   </>

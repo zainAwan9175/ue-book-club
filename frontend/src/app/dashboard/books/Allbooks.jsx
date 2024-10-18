@@ -2,13 +2,27 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FaRegHeart, FaHeart } from "react-icons/fa6";
+import { FaRegHeart, FaHeart, FaNewspaper } from "react-icons/fa6";
+import { GiBookmark, GiBookshelf, GiDramaMasks, GiHeartInside, GiMagnifyingGlass, GiRocketFlight, GiSpellBook } from "react-icons/gi";
 import { Button } from "@/components/ui/button";
 import axios from "axios"; // Import Axios
+
+const genres = [
+  { name: "Fiction", icon: <GiSpellBook /> },
+  { name: "Non-Fiction", icon: <FaNewspaper /> },
+  { name: "Mystery", icon: <GiMagnifyingGlass /> },
+  { name: "Sci-Fi", icon: <GiRocketFlight /> },
+  { name: "Romance", icon: <GiHeartInside /> },
+  { name: "Drama", icon: <GiDramaMasks /> },
+  { name: "Biography", icon: <GiBookmark /> },
+  { name: "History", icon: <GiBookshelf /> },
+];
 
 const Allbooks = () => {
   const [allbooks, setAllBooks] = useState([]); // Initialize state for books
   const [favorites, setFavorites] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]); // State for filtered books
+  const [selectedGenre, setSelectedGenre] = useState(""); // State for selected genre
 
   const toggleFavorite = (id) => {
     setFavorites((prev) =>
@@ -28,10 +42,10 @@ const Allbooks = () => {
           }
         });
         console.log("Response data:", response.data); // Log the fetched data
-        
-        // Check if books are present in the response
+
         if (Array.isArray(response.data.books)) {
           setAllBooks(response.data.books); // Set fetched data to allbooks
+          setFilteredBooks(response.data.books); // Initialize with all books
         } else {
           console.error("Fetched data is not an array:", response.data.books);
           setAllBooks([]); // Optionally reset to an empty array
@@ -43,22 +57,55 @@ const Allbooks = () => {
     };
 
     fetchBooks();
-  }, []); // Empty dependency array means this runs once when the component mounts
+  }, []); 
 
-  // Log when allbooks changes
-  useEffect(() => {
-    console.log(allbooks);
-  }, [allbooks]); // This runs every time allbooks changes
+  // Filter books based on selected genre
+  const filterBooksByGenre = (genre) => {
+    setSelectedGenre(genre);
+    if (genre === "") {
+      setFilteredBooks(allbooks); // Show all books if no genre is selected
+    } else {
+      const filtered = allbooks.filter((book) =>
+        book.genre.toLowerCase() === genre.toLowerCase()
+      );
+      setFilteredBooks(filtered);
+    }
+  };
 
   return (
     <section className="mb-12 mx-8">
+      {/* Genres Section */}
+      <section className="mb-12">
+        <h1 className="text-2xl text-center p-3 font-bold mb-4 text-gray-800">
+          ALL Genres
+        </h1>
+        <div className="grid grid-cols-2 mx-9 sm:grid-cols-4 md:grid-cols-8 gap-4">
+          {genres.map((genre, index) => (
+            <motion.div
+              key={genre.name}
+              className="bg-white p-4 rounded-lg shadow-md text-center cursor-pointer hover:shadow-lg transition-shadow duration-300"
+              whileHover={{ scale: 1.1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.1, delay: index * 0.1 }}
+              onClick={() => filterBooksByGenre(genre.name)} // Click event to filter books
+            >
+              <div className="text-4xl mb-2 text-green-600 mx-auto">
+                {genre.icon}
+              </div>
+              <h3 className="text-sm font-medium">{genre.name}</h3>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       <h2 className="text-2xl font-bold mb-6 text-center justify-center text-gray-800 flex items-center">
         Explore All Books
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {/* Check if allbooks is an array before mapping */}
-        {Array.isArray(allbooks) && allbooks.length > 0 ? (
-          allbooks.map((book, index) => (
+        {/* Check if filteredBooks is an array before mapping */}
+        {Array.isArray(filteredBooks) && filteredBooks.length > 0 ? (
+          filteredBooks.map((book, index) => (
             <motion.div
               key={book._id}
               className="bg-white rounded-lg shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-xl"
