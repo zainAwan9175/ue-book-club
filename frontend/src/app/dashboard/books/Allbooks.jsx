@@ -5,10 +5,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { FaRegHeart, FaHeart, FaNewspaper } from "react-icons/fa6";
-import { GiBookmark, GiBookshelf, GiDramaMasks, GiHeartInside, GiMagnifyingGlass, GiRocketFlight, GiSpellBook } from "react-icons/gi";
+import {
+  GiBookmark,
+  GiBookshelf,
+  GiDramaMasks,
+  GiHeartInside,
+  GiMagnifyingGlass,
+  GiRocketFlight,
+  GiSpellBook,
+} from "react-icons/gi";
 import { BsStars } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
+import { Eye } from "lucide-react";
 
 const genres = [
   { name: "All", icon: <BsStars /> },
@@ -19,10 +28,10 @@ const genres = [
   { name: "Romance", icon: <GiHeartInside /> },
   { name: "Drama", icon: <GiDramaMasks /> },
   { name: "Biography", icon: <GiBookmark /> },
-  { name: "History", icon: <GiBookshelf /> },
 ];
 
-const placeholderImage = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=2730&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+const placeholderImage =
+  "";
 
 const Allbooks = () => {
   const [allbooks, setAllBooks] = useState([]);
@@ -39,13 +48,16 @@ const Allbooks = () => {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/admin/getAllBooks", {
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            'Expires': '0'
+        const response = await axios.get(
+          "http://localhost:3001/admin/getAllBooks",
+          {
+            headers: {
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
           }
-        });
+        );
 
         if (Array.isArray(response.data.books)) {
           setAllBooks(response.data.books);
@@ -68,8 +80,8 @@ const Allbooks = () => {
     if (genre === "All") {
       setFilteredBooks(allbooks);
     } else {
-      const filtered = allbooks.filter((book) =>
-        book.genre.toLowerCase() === genre.toLowerCase()
+      const filtered = allbooks.filter(
+        (book) => book.genre.toLowerCase() === genre.toLowerCase()
       );
       setFilteredBooks(filtered);
     }
@@ -86,7 +98,7 @@ const Allbooks = () => {
             <motion.div
               key={genre.name}
               className={`bg-white p-4 rounded-lg shadow-md text-center cursor-pointer hover:shadow-lg transition-shadow duration-300 ${
-                selectedGenre === genre.name ? 'ring-2 ring-green-500' : ''
+                selectedGenre === genre.name ? "ring-2 ring-green-500" : ""
               }`}
               whileHover={{ scale: 1.1 }}
               initial={{ opacity: 0, y: 20 }}
@@ -106,7 +118,7 @@ const Allbooks = () => {
       <h2 className="text-2xl font-bold mb-6 text-center justify-center text-gray-800 flex items-center">
         Explore {selectedGenre === "All" ? "All Books" : `${selectedGenre} Books`}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {Array.isArray(filteredBooks) && filteredBooks.length > 0 ? (
           filteredBooks.map((book, index) => (
             <motion.div
@@ -117,7 +129,7 @@ const Allbooks = () => {
               transition={{ duration: 0.3, delay: index * 0.1 }}
             >
               <Image
-                src={book.imageurls || placeholderImage}
+                src={book.imageurls}
                 alt={book.name}
                 width={300}
                 height={400}
@@ -125,8 +137,17 @@ const Allbooks = () => {
               />
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-1">{book.name}</h3>
-                <p className="text-gray-600 text-sm">{book.author}</p>
+                <div className="flex justify-between items-center">
+                  <p className="text-gray-600 text-sm">{book.author}</p>
+                  <p className="text-gray-500 flex text-xs mt-1">
+                    <Eye className="mr-1" size={18} /> Views: {book.clicks}
+                  </p>
+                </div>
+                <p className="text-black text-sm mt-2">
+                  {book.longdescription}
+                </p>
               </div>
+
               <div className="flex justify-between items-center">
                 <Link href={`/dashboard/book-details/${book._id}`}>
                   <Button className="ml-3 mt-5 mb-4" variant="outline">
@@ -147,7 +168,9 @@ const Allbooks = () => {
             </motion.div>
           ))
         ) : (
-          <p className="text-center text-gray-600 col-span-full">No books available for this genre</p>
+          <p className="text-center text-gray-600 col-span-full">
+            No books available for this genre
+          </p>
         )}
       </div>
     </section>

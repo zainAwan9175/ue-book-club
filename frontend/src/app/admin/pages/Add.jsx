@@ -50,7 +50,7 @@ const AddPage = () => {
     // Create book data with the uploaded image URL
     const bookData = {
       ...data,
-      coverImageUrl: uploadedImageUrl, // Add the image URL to the form data
+      imageurls: uploadedImageUrl, // Add the image URL to the form data
     };
 
     // Send a POST request to the backend with book data
