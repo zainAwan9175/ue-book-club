@@ -1,15 +1,41 @@
 import mongoose from "mongoose";
 
+
+
+
+
 const commentSchema=mongoose.Schema({
     user_id:{
         type:String,
         require:true,
     },
-   
-    message:{
+   book_id:{
+    type:String,
+    require:true,
+   },
+    content:{
+        type:String,
+        require:true,
+    },
+    waqt:{
+        type:String,
+        require:true,
+    },
+    avatar:{
+        type:String,
+        require:true,
+    },
+    likes: {
+        type:Number,
+        default:0,
+
+    },
+    user:{
         type:String,
         require:true,
     }
+
+
    
    
 

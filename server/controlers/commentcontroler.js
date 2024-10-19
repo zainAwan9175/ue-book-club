@@ -108,3 +108,31 @@ export const getcommentById = async (req, res) => {
     }
   };
   
+
+  export const getcommentByBookId = async (req, res) => {
+    try {
+      const { id } = req.params; // Get the book ID from the URL
+  
+      // Find all comments that match the provided book_id
+    
+      const comments = await commentModel.find({ book_id:id });
+  
+      if (!comments || comments.length === 0) {
+        return res.status(404).json({ message: "No comments found for this book" });
+      }
+  
+      // Send a success response with the found comments
+      res.status(200).json({
+        message: "Comments retrieved successfully",
+        comments: comments
+      });
+    } catch (error) {
+      // Handle any errors during the process
+      console.error("Error fetching comments:", error);
+      res.status(500).json({
+        message: "Error fetching comments",
+        error: error.message
+      });
+    }
+  };
+  
