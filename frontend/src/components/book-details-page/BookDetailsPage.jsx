@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import axios from 'axios';
+import { useUser } from '@clerk/nextjs';
 
 const Comment = ({ comment }) => {
   const formatDate = (dateString) => {
@@ -35,6 +36,7 @@ const Comment = ({ comment }) => {
 };
 
 export default function BookDetails({ book }) {
+  const { user } = useUser(); // Clerk user hook
   const [bookid, setbookid] = useState(book._id);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -68,20 +70,30 @@ export default function BookDetails({ book }) {
       }
     };
 
-    fetchComments();
-  }, [bookid]);
+    const intervalId = setInterval(fetchComments, 1000); // Fetch comments every 1 second
+
+    return () => clearInterval(intervalId); // Cleanup the interval when component unmounts
+  }, [bookid]); // Include bookid as a dependency
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (newComment.trim()) {
       const now = new Date();
+
+      // Make sure we have user data from Clerk
+      if (!user) {
+        console.error("User is not logged in.");
+        return;
+      }
+
+      // Prepare the comment data including the logged-in user's info
       const commentData = {
-        user_id: "dadadada",
+        user_id: user.id, // Use Clerk's user ID
         book_id: bookid,
         waqt: now.toISOString(), // Use ISO string format for consistent date handling
-        user: "You",
-        avatar: "/placeholder.svg?height=40&width=40",
+        user: `${user.firstName} ${user.lastName}`, // Full name of the user
+        avatar: user.imageUrl, // User's profile image or a fallback
         content: newComment.trim(),
         likes: 0,
       };
