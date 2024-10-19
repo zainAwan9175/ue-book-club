@@ -33,7 +33,15 @@ const commentSchema=mongoose.Schema({
     user:{
         type:String,
         require:true,
-    }
+    },
+    parent_id: {
+        type: String,
+        default: null
+      },
+      replies: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'comment'
+      }]
 
 
    

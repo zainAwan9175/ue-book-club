@@ -135,4 +135,36 @@ export const getcommentById = async (req, res) => {
       });
     }
   };
+  export const editCommentById = async (req, res) => {
+    try {
+      const { id } = req.params; // Get the comment ID from the URL
+      const { content } = req.body; // Get the new comment text from the request body
+  console.log(id)
+  console.log(content)
+      // Find the comment by its ID and update the text
+      const updatedComment = await commentModel.findByIdAndUpdate(
+        id,
+
+        { content }, // Update only the 'text' field
+        { new: true } // Return the updated document
+      );
+  
+      if (!updatedComment) {
+        return res.status(404).json({ message: "Comment not found" });
+      }
+  
+      // Send a success response with the updated comment
+      res.status(200).json({
+        message: "Comment updated successfully",
+        comment: updatedComment
+      });
+    } catch (error) {
+      // Handle any errors during the process
+      console.error("Error updating comment:", error);
+      res.status(500).json({
+        message: "Error updating comment",
+        error: error.message
+      });
+    }
+  };
   
