@@ -10,16 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // Mock book data (in a real app, this would be fetched from an API)
-const book = {
-  name: "The Great Gatsby",
-  genre: "Classic Literature",
-  shortDescription: "A tale of wealth, love, and the American Dream in the Roaring Twenties.",
-  longDescription: "Set in the summer of 1922, The Great Gatsby follows the lives of a group of characters living in the fictional town of West Egg on Long Island. The story primarily concerns the young and mysterious millionaire Jay Gatsby and his obsession with the beautiful Daisy Buchanan. Considered to be Fitzgerald's magnum opus, The Great Gatsby explores themes of decadence, idealism, resistance to change, social upheaval, and excess, creating a portrait of the Jazz Age that has been described as a cautionary tale regarding the American Dream.",
-  author: "F. Scott Fitzgerald",
-  imageUrl: "https://images.unsplash.com/photo-1609345635784-fd4a890e2326?q=80&w=1909&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  tags: ["classic", "american literature", "jazz age"],
-  clicks: 1500
-};
+
 
 // Mock comments data (in a real app, this would be fetched from an API)
 const initialComments = [
@@ -106,7 +97,8 @@ const Comment = ({ comment, onReply, onLike }) => {
   );
 };
 
-export default function BookDetails() {
+export default function BookDetails({book}) {
+  console.log(book)
   const [comments, setComments] = useState(initialComments);
   const [newComment, setNewComment] = useState("");
 
@@ -171,7 +163,7 @@ export default function BookDetails() {
           <div className="md:flex">
             <div className="md:w-1/3 relative h-[400px] md:h-auto">
               <Image
-                src={book.imageUrl}
+                src={book.imageurls}
                 alt={book.name}
                 layout="fill"
                 objectFit="cover"
@@ -204,21 +196,21 @@ export default function BookDetails() {
                 <span className="text-green-700 font-semibold">{book.genre}</span>
               </div>
               
-              <p className="text-gray-700 mb-6 italic">{book.shortDescription}</p>
+              <p className="text-gray-700 mb-6 italic">{book.shortdescription}</p>
               
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">About the Book</h3>
-                <p className="text-gray-600 leading-relaxed">{book.longDescription}</p>
+                <p className="text-gray-600 leading-relaxed">{book.longdescription}</p>
               </div>
               
-              <div className="flex flex-wrap gap-2 mb-6">
+              {/* <div className="flex flex-wrap gap-2 mb-6">
                 {book.tags.map((tag, index) => (
                   <Badge key={index} variant="secondary" className="bg-green-100 text-green-800 px-3 py-1 rounded-full">
                     <Tag className="h-3 w-3 mr-2" />
                     {tag}
                   </Badge>
                 ))}
-              </div>
+              </div> */}
               
               <div className="flex items-center text-gray-500">
                 <Eye className="h-5 w-5 mr-2" />

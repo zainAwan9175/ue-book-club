@@ -85,7 +85,6 @@ export const getAllBooks = async (req, res) => {
     });
   }
 };
-
 export const getBookById = async (req, res) => {
   try {
     const { id } = req.params; // Get the book ID from the URL
@@ -100,14 +99,13 @@ export const getBookById = async (req, res) => {
     // Send a success response with the found book
     res.status(200).json({
       message: "Book retrieved successfully",
-      book: book
+      book: book,
     });
   } catch (error) {
-    // Handle any errors during the process
     console.error("Error fetching book:", error);
     res.status(500).json({
       message: "Error fetching book",
-      error: error.message
+      error: error.message,
     });
   }
 };

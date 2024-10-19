@@ -347,7 +347,9 @@ export default function Header() {
                 <div>
                   <h3 className="font-bold">{book.name}</h3>
                   <p className="text-gray-600 text-sm"> Author : {book.author}</p>
-                  <p className="text-gray-600 text-sm">{book.shortdescription}</p>
+                  <p className="text-gray-600 text-sm">
+  {book.shortdescription.split(" ").slice(0, 12).join(" ") + (book.shortdescription.split(" ").length > 12 ? "..." : "")}
+</p>
                   <p className="text-gray-500 text-xs mt-1">
                     Releasing: November, 2024
                   </p>
