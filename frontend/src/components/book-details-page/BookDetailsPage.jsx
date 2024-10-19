@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, BookOpen, MessageSquare, Send, MoreVertical, Eye, ThumbsUp, Reply, Edit, Trash2, Clock, Calendar } from 'lucide-react';
+import { ChevronLeft, BookOpen, MessageSquare, Send, MoreVertical, Eye, ThumbsUp, Reply, Edit, Trash2, Clock, Calendar, CornerUpLeft, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,11 +10,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
 
-const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId }) => {
+const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, allComments, onScrollToComment ,user}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
+  //  const { user } = useUser();
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -37,16 +38,43 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId }) 
     setReplyContent('');
   };
 
+  const getParentComment = (parentId) => {
+    return allComments.find(c => c._id === parentId);
+  };
+
+  const truncateContent = (content, maxLength = 50) => {
+    return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+  };
+
   return (
     <div className="mb-4">
       <div className="flex items-start space-x-4">
         <Avatar>
           <AvatarImage src={comment.avatar} alt={comment.user} />
-          <AvatarFallback>{comment.user[0]}</AvatarFallback>
+          <AvatarFallback>{comment.user}</AvatarFallback>
         </Avatar>
         <div className="flex-1 bg-gray-100 rounded-lg p-4">
+          {comment.parent_id && (
+            <div 
+              className="bg-gray-200 p-2 rounded mb-2 text-sm text-gray-600 cursor-pointer"
+              onClick={() => onScrollToComment(comment.parent_id)}
+            >
+              <CornerUpLeft className="h-4 w-4 inline mr-1" />
+              {truncateContent(getParentComment(comment.parent_id)?.content || 'Comment on witch you reply delete by user')}
+            </div>
+          )}
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-semibold text-gray-900">{comment.user}</h4>
+          <div className="flex items-center justify-between mb-2">
+  {
+    comment.user_id === currentUserId ? (
+      <h4 className="text-sm font-semibold text-gray-900">YOU</h4>
+    ) : (
+      <h4 className="text-sm font-semibold text-gray-900">{comment.user}</h4>
+    )
+  }
+</div>
+
+         
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
@@ -118,17 +146,6 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId }) 
           )}
         </div>
       </div>
-      {comment.replies && comment.replies.map((reply) => (
-        <Comment
-          key={reply._id}
-          comment={reply}
-          onReply={onReply}
-          onLike={onLike}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          currentUserId={currentUserId}
-        />
-      ))}
     </div>
   );
 };
@@ -138,6 +155,9 @@ export default function BookDetails({ book }) {
   const [bookid, setbookid] = useState(book._id);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const commentRefs = useRef({});
+  const commentsContainerRef = useRef(null);
 
   const fetchComments = useCallback(async () => {
     if (!bookid) {
@@ -157,6 +177,8 @@ export default function BookDetails({ book }) {
     } catch (error) {
       console.error("Error fetching comments:", error);
       setComments([]);
+    } finally {
+      setIsLoading(false);
     }
   }, [bookid]);
 
@@ -208,7 +230,7 @@ export default function BookDetails({ book }) {
       };
 
       try {
-        const response = await axios.post("http://localhost:3001/comment/createreply", replyData);
+        const response = await axios.post("http://localhost:3001/comment/createcomment", replyData);
         if (response.status === 200) {
           fetchComments();
         } else {
@@ -259,10 +281,16 @@ export default function BookDetails({ book }) {
     }
   };
 
+  const handleScrollToComment = (commentId) => {
+    if (commentRefs.current[commentId]) {
+      commentRefs.current[commentId].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Book Details for ID: {bookid}</h1>
+        <h1 className="text-2xl font-bold mb-4">Book Details </h1>
         
         <Button
           variant="ghost"
@@ -338,6 +366,7 @@ export default function BookDetails({ book }) {
                 onChange={(e) => setNewComment(e.target.value)}
                 className="mb-4"
               />
+              
               <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">
                 <Send className="h-4 w-4 mr-2" />
                 Post Comment
@@ -346,18 +375,28 @@ export default function BookDetails({ book }) {
 
             <Separator className="mb-4" />
             
-            <div className="space-y-6">
-              {comments.map((comment) => (
-                <Comment
-                  key={comment._id}
-                  comment={comment}
-                  onReply={handleReply}
-                  onLike={handleLike}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  currentUserId={user?.id}
-                />
-              ))}
+            <div className="space-y-6 max-h-[600px] overflow-y-auto" ref={commentsContainerRef}>
+              {isLoading ? (
+                <div className="flex justify-center items-center h-32">
+                  <Loader2 className="h-8 w-8 animate-spin text-green-500" />
+                </div>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment._id} ref={(el) => commentRefs.current[comment._id] = el}>
+                    <Comment
+                      comment={comment}
+                      onReply={handleReply}
+                      onLike={handleLike}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      currentUserId={user?.id}
+                      allComments={comments}
+                      onScrollToComment={handleScrollToComment}
+                     
+                    />
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

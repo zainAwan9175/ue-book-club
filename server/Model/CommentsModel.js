@@ -38,10 +38,10 @@ const commentSchema=mongoose.Schema({
         type: String,
         default: null
       },
-      replies: [{
+      replies: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'comment'
-      }]
+      }
 
 
    

@@ -121,6 +121,7 @@ export default function LandingPage() {
   //   setTimeout(() => setIsSubmitted(false), 3000)
   //   setEmail('')
   // }
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Navbar */}
@@ -150,7 +151,7 @@ export default function LandingPage() {
                 Home
               </a>
               <a
-                href="#books"
+             href="/dashboard/books"
                 className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
               >
                 Books
@@ -229,7 +230,7 @@ export default function LandingPage() {
                       Home
                     </a>
                     <a
-                      href="#books"
+                      href="/dashboard/books"
                       className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                     >
                       Books
@@ -329,7 +330,7 @@ export default function LandingPage() {
                     whileTap="rest"
                   >
                     <a
-                      href="#"
+                      href="/dashboard"
                       className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 md:py-3 md:text-lg md:px-8"
                     >
                       Join Now
@@ -343,7 +344,7 @@ export default function LandingPage() {
                     className="mt-3 sm:mt-0 sm:ml-3"
                   >
                     <a
-                      href="#"
+                      href="/dashboard"
                       className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 md:py-3 md:text-lg md:px-8"
                     >
                       Learn More

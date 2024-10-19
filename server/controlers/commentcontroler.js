@@ -3,8 +3,7 @@ import commentModel from "../Model/CommentsModel.js";
 export const createcomment = async (req, res) => {
   try {
     // Log the request body to debug
-    console.log(req.body);
-
+   
     // Create a new comment instance using the request body data
     const newComment = await commentModel.create(req.body);
 
@@ -139,8 +138,7 @@ export const getcommentById = async (req, res) => {
     try {
       const { id } = req.params; // Get the comment ID from the URL
       const { content } = req.body; // Get the new comment text from the request body
-  console.log(id)
-  console.log(content)
+
       // Find the comment by its ID and update the text
       const updatedComment = await commentModel.findByIdAndUpdate(
         id,

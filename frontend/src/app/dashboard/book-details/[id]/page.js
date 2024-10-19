@@ -43,7 +43,7 @@ const BookDetails = () => {
 
   return (
     <div>
-      <h1>Book Details for ID: {id}</h1>
+    
       {/* Pass the fetched book details to the BookDetailsPage component */}
       {book && <BookDetailsPage book={book} />}
     </div>
