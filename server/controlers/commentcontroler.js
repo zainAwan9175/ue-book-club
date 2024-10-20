@@ -165,4 +165,42 @@ export const getcommentById = async (req, res) => {
       });
     }
   };
-  
+ // Add this line to import mongoose
+//import commentModel from '../models/commentModel';  // Adjust the path according to your project structure
+
+// Your other code here...
+
+export const likes = async (req, res) => {
+    const commentId = req.params.commentId;  // Adjust according to your request structure
+    const userId = req.body.userId;           // Adjust according to your request structure
+
+    // Validate the commentId
+    // if (!mongoose.Types.ObjectId.isValid(commentId)) {
+    //     return res.status(400).json({ error: 'Invalid comment ID' });
+    // }
+
+    // Continue with your logic to update likes...
+    try {
+        // Example logic for liking a comment
+        const comment = await commentModel.findById(commentId);
+        if (!comment) {
+            return res.status(404).json({ error: 'Comment not found' });
+        }
+
+        // Your logic to handle likes
+        if (!comment.user_id_in_like.includes(userId)) {
+            comment.user_id_in_like.push(userId);  // Add userId to liked users
+            comment.likes += 1;  // Increment likes
+        } else {
+            // If user already liked, remove their like
+            comment.user_id_in_like = comment.user_id_in_like.filter(id => id !== userId);
+            comment.likes -= 1;  // Decrement likes
+        }
+
+        await comment.save();  // Save updated comment
+        return res.status(200).json(comment);  // Send back the updated comment
+    } catch (error) {
+        console.error('Error updating like status:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};

@@ -25,11 +25,7 @@ const commentSchema=mongoose.Schema({
         type:String,
         require:true,
     },
-    likes: {
-        type:Number,
-        default:0,
-
-    },
+  
     user:{
         type:String,
         require:true,
@@ -41,7 +37,14 @@ const commentSchema=mongoose.Schema({
       replies: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'comment'
-      }
+      },
+      likes:{
+        type:Number,
+        default: 0, 
+    },
+    user_id_in_like: [
+        { type: String }  // Array of user IDs (from Clerk) who liked the comment
+    ],
 
 
    

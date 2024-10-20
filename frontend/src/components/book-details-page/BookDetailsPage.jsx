@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, BookOpen, MessageSquare, Send, MoreVertical, Eye, ThumbsUp, Reply, Edit, Trash2, Clock, Calendar, CornerUpLeft, Loader2 } from 'lucide-react';
+import { ChevronLeft, BookOpen, MessageSquare, Send, MoreVertical, Eye, ThumbsUp, Reply, Edit, Trash2, Clock, Calendar, CornerUpLeft, Loader2, ChevronDown, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,13 +9,60 @@ import { Separator } from "@/components/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useClerk } from '@clerk/nextjs';
 
-const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, allComments, onScrollToComment ,user}) => {
+const LikesPopup = ({ isOpen, onClose, likes, userNames }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ y: -50 }}
+            animate={{ y: 0 }}
+            exit={{ y: -50 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white rounded-lg p-6 w-80 max-w-md relative"
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="absolute top-2 right-2"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <h3 className="text-lg font-semibold mb-4">Liked by:</h3>
+            <ul className="space-y-2">
+              {likes.map((userId) => (
+                <li key={userId} className="flex items-center space-x-2">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={userNames[userId]?.avatar} alt={userNames[userId]?.name} />
+                    <AvatarFallback>{userNames[userId]?.name?.charAt(0) || '?'}</AvatarFallback>
+                  </Avatar>
+                  <span>{userId }</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, allComments, onScrollToComment, user, userNames }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
-  //  const { user } = useUser();
+  const [showLikes, setShowLikes] = useState(false);
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -46,12 +93,14 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
     return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
   };
 
+  const isLikedByCurrentUser = comment.user_id_in_like.includes(currentUserId);
+
   return (
     <div className="mb-4">
       <div className="flex items-start space-x-4">
         <Avatar>
           <AvatarImage src={comment.avatar} alt={comment.user} />
-          <AvatarFallback>{comment.user}</AvatarFallback>
+          <AvatarFallback>{comment.user.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-1 bg-gray-100 rounded-lg p-4">
           {comment.parent_id && (
@@ -60,21 +109,19 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
               onClick={() => onScrollToComment(comment.parent_id)}
             >
               <CornerUpLeft className="h-4 w-4 inline mr-1" />
-              {truncateContent(getParentComment(comment.parent_id)?.content || 'Comment on witch you reply delete by user')}
+              {truncateContent(getParentComment(comment.parent_id)?.content || 'Comment on which you reply deleted by user')}
             </div>
           )}
           <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center justify-between mb-2">
-  {
-    comment.user_id === currentUserId ? (
-      <h4 className="text-sm font-semibold text-gray-900">YOU</h4>
-    ) : (
-      <h4 className="text-sm font-semibold text-gray-900">{comment.user}</h4>
-    )
-  }
-</div>
-
-         
+            <div className="flex items-center justify-between mb-2">
+              {
+                comment.user_id === currentUserId ? (
+                  <h4 className="text-sm font-semibold text-gray-900">YOU</h4>
+                ) : (
+                  <h4 className="text-sm font-semibold text-gray-900">{comment.user}</h4>
+                )
+              }
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
@@ -113,9 +160,12 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
             )}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" onClick={() => onLike(comment._id)}>
-                  <ThumbsUp className="h-4 w-4 mr-1" />
+                <Button variant="ghost" size="sm" onClick={() => onLike(comment._id, currentUserId)}>
+                  <ThumbsUp className={`h-4 w-4 mr-1 ${isLikedByCurrentUser ? 'text-red-500' : ''}`} />
                   {comment.likes}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowLikes(!showLikes)}>
+                  <ChevronDown className="h-4 w-4" />
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setIsReplying(!isReplying)}>
                   <Reply className="h-4 w-4 mr-1" />
@@ -123,6 +173,12 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
                 </Button>
               </div>
             </div>
+            <LikesPopup
+              isOpen={showLikes}
+              onClose={() => setShowLikes(false)}
+              likes={comment.user_id_in_like}
+              userNames={userNames}
+            />
             <span className="text-xs text-gray-500 self-end mt-1">
               <Clock className="h-3 w-3 inline mr-1" />
               {formatTime(comment.waqt)}
@@ -150,12 +206,14 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
   );
 };
 
-export default function BookDetails({ book }) {
+export default function Component({ book = { _id: '', name: '', author: '', genre: '', shortdescription: '', longdescription: '', clicks: 0, imageurls: '' } }) {
   const { user } = useUser();
+  const clerk = useClerk();
   const [bookid, setbookid] = useState(book._id);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [userNames, setUserNames] = useState({});
   const commentRefs = useRef({});
   const commentsContainerRef = useRef(null);
 
@@ -170,6 +228,12 @@ export default function BookDetails({ book }) {
       if (Array.isArray(response.data.comments)) {
         const sortedComments = response.data.comments.sort((a, b) => new Date(b.waqt) - new Date(a.waqt));
         setComments(sortedComments);
+        
+        // Fetch user names for all unique user IDs
+        const uniqueUserIds = [...new Set(sortedComments.flatMap(comment => 
+          [comment.user_id, ...comment.user_id_in_like]
+        ))];
+        fetchUserNames(uniqueUserIds);
       } else {
         console.error("Fetched data is not an array:", response.data.comments);
         setComments([]);
@@ -182,9 +246,29 @@ export default function BookDetails({ book }) {
     }
   }, [bookid]);
 
+  const fetchUserNames = async (userIds) => {
+    const newUserNames = { ...userNames };
+    const clerk = useClerk();
+    for (const userId of userIds) {
+      if (!newUserNames[userId]) {
+        try {
+          const user = await clerk.users.getUser(userId);
+          newUserNames[userId] = {
+            name: `${user.firstName} ${user.lastName}`,
+            avatar: user.imageUrl
+          };
+        } catch (error) {
+          console.error(`Error fetching user name for ID ${userId}:`, error);
+          newUserNames[userId] = { name: 'Unknown User', avatar: null };
+        }
+      }
+    }
+    setUserNames(newUserNames);
+  };
+
   useEffect(() => {
     fetchComments();
-    const intervalId = setInterval(fetchComments, 1000);
+    const intervalId = setInterval(fetchComments, 5000);
     return () => clearInterval(intervalId);
   }, [fetchComments]);
 
@@ -242,9 +326,10 @@ export default function BookDetails({ book }) {
     }
   };
 
-  const handleLike = async (commentId) => {
+  const handleLike = async (commentId, userId) => {
     try {
-      const response = await axios.post(`http://localhost:3001/comment/like/${commentId}`);
+      const response = await axios.post(`http://localhost:3001/comment/likes/${commentId}`, { userId });
+   
       if (response.status === 200) {
         fetchComments();
       } else {
@@ -274,7 +359,8 @@ export default function BookDetails({ book }) {
       if (response.status === 200) {
         fetchComments();
       } else {
-        console.error("Error deleting comment:", response.data.message);
+        console.error("Error deleting comment:", 
+        response.data.message);
       }
     } catch (error) {
       console.error("Error deleting comment:", error);
@@ -290,7 +376,7 @@ export default function BookDetails({ book }) {
   return (
     <div className="min-h-screen bg-white p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Book Details </h1>
+        <h1 className="text-2xl font-bold mb-4">Book Details</h1>
         
         <Button
           variant="ghost"
@@ -392,7 +478,8 @@ export default function BookDetails({ book }) {
                       currentUserId={user?.id}
                       allComments={comments}
                       onScrollToComment={handleScrollToComment}
-                     
+                      user={user}
+                      userNames={userNames}
                     />
                   </div>
                 ))
