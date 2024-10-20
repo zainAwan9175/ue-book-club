@@ -219,7 +219,7 @@ export default function Header() {
                 <h3 className="font-semibold text-lg mb-1">{book.name}</h3>
                 <p className="text-gray-600 text-sm">{book.author}</p>
                 <p className="text-gray-600 mt-2 text-sm">
-                  {book.longdescription}
+                {book.shortdescription.split(" ").slice(0, 12).join(" ") + (book.shortdescription.split(" ").length > 12 ? "..." : "")}
                 </p>
                 <div className="flex items-center mt-3">
                   <Eye className="mt-1 mr-2" size={18} />{" "}

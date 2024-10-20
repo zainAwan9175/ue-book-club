@@ -106,7 +106,7 @@ const Allbooks = () => {
       <h2 className="text-2xl font-bold mb-6 text-center justify-center text-gray-800 flex items-center">
         Explore {selectedGenre === "All" ? "All Books" : `${selectedGenre} Books`}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid mx-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Array.isArray(filteredBooks) && filteredBooks.length > 0 ? (
           filteredBooks.map((book, index) => (
             <motion.div
@@ -133,7 +133,7 @@ const Allbooks = () => {
                     Views: {book.clicks}
                   </p>
                 </div>
-                <p className="text-black text-sm mt-2">{book.longdescription.split(" ").slice(0, 12).join(" ") + (book.shortdescription.split(" ").length > 12 ? "..." : "")}</p>
+                <p className="text-black text-sm mt-2">{book.shortdescription.split(" ").slice(0, 12).join(" ") + (book.shortdescription.split(" ").length > 12 ? "..." : "")}</p>
               </div>
            
               <div className="flex justify-between items-center">

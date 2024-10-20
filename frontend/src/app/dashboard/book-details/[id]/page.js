@@ -5,6 +5,7 @@ import BookDetailsPage from "@/components/book-details-page/BookDetailsPage";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import { useUser } from "@clerk/nextjs";
+import Loader from "@/components/Loader";
 
 const BookDetails = () => {
   const { user } = useUser();
@@ -19,25 +20,28 @@ const BookDetails = () => {
     const fetchBookDetails = async () => {
       try {
         const response = await axios.get(`http://localhost:3001/admin/getBookById/${id}`);
-        const click = await axios.put(`http://localhost:3001/admin/clicks/${id}`,{userId:user.id });
+        const click = await axios.put(`http://localhost:3001/admin/clicks/${id}`, { userId: user.id });
         setBook(response.data.book); // Update book state with the fetched book object
       } catch (err) {
         setError("Error fetching book details");
-      } finally {
-        setLoading(false); // Stop loading when request is done
       }
     };
 
     if (id) {
       fetchBookDetails();
     }
+
+    // Ensure loader shows for at least 2 seconds
+    const loaderTimeout = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(loaderTimeout); // Cleanup timeout if component unmounts
   }, [id]);
-
-
 
   // Show loading state
   if (loading) {
-    return <div>Loading...</div>;
+    return <div><Loader /></div>;
   }
 
   // Show error state
@@ -47,7 +51,6 @@ const BookDetails = () => {
 
   return (
     <div>
-    
       {/* Pass the fetched book details to the BookDetailsPage component */}
       {book && <BookDetailsPage book={book} />}
     </div>

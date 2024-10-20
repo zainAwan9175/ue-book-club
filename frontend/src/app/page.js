@@ -1,5 +1,6 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
+import Bookofmonth from "@/Bookof month";
 
 import {
   Card,
@@ -435,69 +436,7 @@ export default function LandingPage() {
       </section>
 
       {/* Book of the Month Section */}
-      <section className="py-16 bg-white" id="books">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="lg:text-center mb-12">
-            <Badge
-              variant="outline"
-              className="text-green-600 border-green-600 text-[14px]"
-            >
-              Featured Read
-            </Badge>
-            <p className="mt-2 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Book of the Month
-            </p>
-          </div>
-          <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
-            <div className="relative">
-              <motion.div
-                initial="rest"
-                whileHover="hover"
-                variants={bookAnimation}
-                className="relative w-3/4 ml-[90px] rounded-lg shadow-lg overflow-hidden"
-              >
-                <img
-                  className="w-full rounded-lg"
-                  src="https://m.media-amazon.com/images/I/61M6KzUbf7L._SY466_.jpg"
-                  alt="Book of the Month"
-                />
-                {/* <div className="absolute  inset-0 bg-gradient-to-t from-black to-transparent opacity-0 hover:opacity-70 transition-opacity duration-300 flex items-end justify-center">
-                  <p className="text-white text-xl font-bold p-4">Read More</p>
-                </div> */}
-              </motion.div>
-            </div>
-            <div className="mt-10 ml-10 lg:mt-0">
-              <h3 className="text-2xl font-bold text-gray-900">
-                Atomic Habits
-              </h3>
-              <p className="mt-3 text-lg text-gray-500">James Clear</p>
-              <p className="mt-5 text-base text-gray-500">
-                Atomic Habits, written by James Clear, is a bestselling
-                self-help book that focuses on the power of small, consistent
-                changes to improve one's life. The book provides practical
-                strategies and tools for creating and maintaining positive
-                habits, and for breaking negative ones.
-              </p>
-              <div className="mt-10">
-                <motion.div
-                  variants={buttonAnimation}
-                  initial="rest"
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  <a
-                    href="/dashboard"
-                    className="inline-flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700"
-                    style={buttonStyle}
-                  >
-                    Read More
-                  </a>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+     <Bookofmonth></Bookofmonth>
 
       {/* Upcoming Events Section */}
       <section
