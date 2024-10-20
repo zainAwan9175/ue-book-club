@@ -208,7 +208,9 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
 
 export default function Component({ book = { _id: '', name: '', author: '', genre: '', shortdescription: '', longdescription: '', clicks: 0, imageurls: '' } }) {
   const { user } = useUser();
-  const clerk = useClerk();
+ 
+  
+
   const [bookid, setbookid] = useState(book._id);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -233,7 +235,7 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
         const uniqueUserIds = [...new Set(sortedComments.flatMap(comment => 
           [comment.user_id, ...comment.user_id_in_like]
         ))];
-        fetchUserNames(uniqueUserIds);
+      
       } else {
         console.error("Fetched data is not an array:", response.data.comments);
         setComments([]);
@@ -246,25 +248,7 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
     }
   }, [bookid]);
 
-  const fetchUserNames = async (userIds) => {
-    const newUserNames = { ...userNames };
-    const clerk = useClerk();
-    for (const userId of userIds) {
-      if (!newUserNames[userId]) {
-        try {
-          const user = await clerk.users.getUser(userId);
-          newUserNames[userId] = {
-            name: `${user.firstName} ${user.lastName}`,
-            avatar: user.imageUrl
-          };
-        } catch (error) {
-          console.error(`Error fetching user name for ID ${userId}:`, error);
-          newUserNames[userId] = { name: 'Unknown User', avatar: null };
-        }
-      }
-    }
-    setUserNames(newUserNames);
-  };
+
 
   useEffect(() => {
     fetchComments();
