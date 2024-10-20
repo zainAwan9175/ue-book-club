@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import BookDetailsPage from "@/components/book-details-page/BookDetailsPage";
 import { useParams } from "next/navigation";
 import axios from "axios";
+import { useUser } from "@clerk/nextjs";
 
 const BookDetails = () => {
+  const { user } = useUser();
   const params = useParams();
   const { id } = params; // Access the dynamic id from the URL
   const [book, setBook] = useState(null); // State to hold book details
@@ -17,7 +19,7 @@ const BookDetails = () => {
     const fetchBookDetails = async () => {
       try {
         const response = await axios.get(`http://localhost:3001/admin/getBookById/${id}`);
-
+        const click = await axios.put(`http://localhost:3001/admin/clicks/${id}`,{userId:user.id });
         setBook(response.data.book); // Update book state with the fetched book object
       } catch (err) {
         setError("Error fetching book details");
@@ -30,6 +32,8 @@ const BookDetails = () => {
       fetchBookDetails();
     }
   }, [id]);
+
+
 
   // Show loading state
   if (loading) {

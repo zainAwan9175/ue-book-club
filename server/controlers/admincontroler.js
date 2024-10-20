@@ -109,3 +109,34 @@ export const getBookById = async (req, res) => {
     });
   }
 };
+
+
+
+
+export const clicks = async (req, res) => {
+    const id = req.params.id;  
+    const userId = req.body.userId;   
+  
+  
+    try {
+        // Example logic for click a book
+        const book = await Bookmodel.findById(id);
+        if (!book) {
+            return res.status(404).json({ error: 'boook not found' });
+        }
+
+        // Your logic to handle click
+        if (!book.user_id_in_view.includes(userId)) {
+            book.user_id_in_view.push(userId);  // user_id_in_view
+            book.clicks += 1;  // Increment clicks
+        } 
+
+        await book.save();  // Save updated comment
+        return res.status(200).json(book);  // Send back the updated comment
+    } catch (error) {
+        console.error('Error updating clicks status:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+

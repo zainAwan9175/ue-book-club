@@ -33,7 +33,10 @@ const BookSchema=mongoose.Schema({
         type:Number,
         default: 0, 
         
-    }
+    },
+    user_id_in_view: [
+        { type: String }  // Array of user IDs (from Clerk) who liked the comment
+    ],
 
 
 },{timestamps:true})
