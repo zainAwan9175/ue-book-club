@@ -199,7 +199,7 @@ export default function Header() {
           <BsStars className="mr-2 text-yellow-400" /> Trending Now in{" "}
           {selectedGenre}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2  lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2  lg:grid-cols-3 gap-6">
           {trendingBooks.map((book, index) => (
             <motion.div
               key={book._id}
