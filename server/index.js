@@ -1,8 +1,10 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors"; // Import CORS
+import { userRoute } from "./Route/userRoute.js";
 import { adminRoute } from "./Route/adminRoute.js";
 import { commentRoute } from "./Route/commentRoute.js";
+
 
 const app = express();
 
@@ -11,6 +13,7 @@ dotenv.config();
 
 // Database connection
 import mongodbconnection from "./mongodb-connection.js";
+
 mongodbconnection();
 
 const port = 3001;
@@ -32,7 +35,7 @@ app.get('/', (req, res) => {
 // Define your routes
 app.use("/admin", adminRoute);
 app.use("/comment", commentRoute);
-
+app.use("/users",userRoute );
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

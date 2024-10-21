@@ -57,7 +57,39 @@ const BookDetails = () => {
   }, [id, user]);
 
 
+  // New useEffect to fetch logged-in user details
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user || !user.id) {
+        console.error("User object is not available");
+        return; // Exit early if user is not valid
+      }
+  
+      const userData = {
+        userId: user.id,
+        username: user.firstName, // Ensure this is available in your user object
+        imageUrl: user.imageUrl,     // Ensure this is available in your user object
+      };
+  
+      try {
+        const response = await axios.post('http://localhost:3001/users/create', userData);
+        console.log("User data submitted successfully:", response.data);
+        // You can handle the response data here (e.g., save it to state, redirect, etc.)
+      }
+      catch(err)
+      {
 
+      }
+      // catch (err) {
+      //   console.error("Error fetching user data:", err); // Log the error for debugging
+      //   setError("Error fetching user data"); // Set an error message to state
+      // }
+    };
+  
+    fetchUserData();
+  
+  }, [user]);
+  
 
 
   // Show loading state
