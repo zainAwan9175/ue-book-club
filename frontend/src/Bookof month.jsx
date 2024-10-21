@@ -61,13 +61,13 @@ export default function Bookofmonth() {
               whileHover="hover"
               variants={{
                 rest: { scale: 1, rotate: 0 },
-                hover: { scale: 1.05, rotate: 20, transition: { duration: 0.5, ease: "easeInOut" } } // Increased speed
+                hover: { scale: 1.05, rotate: 10, transition: { duration: 0.1, ease: "easeInOut" } } // Increased speed
               }}
               className="relative w-3/4 rounded-lg shadow-lg overflow-hidden"
               style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
             >
               <img
-                className="w-full h-[200px] sm:h-[300px] lg:h-[400px] object-cover rounded-lg" // Decreased height
+                className="w-[360px] h-[200px] sm:h-[300px] lg:h-[400px] object-cover rounded-lg" // Decreased height
                 src={bookOfTheMonth.imageurls}
                 alt="Book of the Month"
               />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, BookOpen, MessageSquare, Send, MoreVertical, Eye, ThumbsUp, Reply, Edit, Trash2, Clock, Calendar, CornerUpLeft, Loader2, ChevronDown, X } from 'lucide-react';
+import { ChevronLeft, BookOpen, MessageSquare, Send, MoreVertical, Eye, ThumbsUp, Reply, Edit, Trash2, Clock, Calendar, CornerUpLeft, Loader2, ChevronDown, X, Tag, Share2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,9 +10,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useClerk } from '@clerk/nextjs';
 
-const LikesPopup = ({ isOpen, onClose, likes, userNames }) => {
+export const LikesPopup = ({ isOpen, onClose, likes }) => {
+  if (likes.length === 0) {
+    return null;
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -41,13 +44,7 @@ const LikesPopup = ({ isOpen, onClose, likes, userNames }) => {
             <h3 className="text-lg font-semibold mb-4">Liked by:</h3>
             <ul className="space-y-2">
               {likes.map((userId) => (
-                <li key={userId} className="flex items-center space-x-2">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={userNames[userId]?.avatar} alt={userNames[userId]?.name} />
-                    <AvatarFallback>{userNames[userId]?.name?.charAt(0) || '?'}</AvatarFallback>
-                  </Avatar>
-                  <span>{userId }</span>
-                </li>
+                <Commentlike key={userId} userId={userId} />
               ))}
             </ul>
           </motion.div>
@@ -57,7 +54,67 @@ const LikesPopup = ({ isOpen, onClose, likes, userNames }) => {
   );
 };
 
-const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, allComments, onScrollToComment, user, userNames }) => {
+export const Commentlike = ({ userId }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`http://localhost:3001/users/findbyid/${userId}`);
+        setUser(response.data.user);
+      } catch (err) {
+        setError('Failed to fetch user data');
+        console.error('Error fetching user:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <li className="flex items-center space-x-2">
+        <div className="h-6 w-6 bg-gray-200 rounded-full animate-pulse"></div>
+        <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+      </li>
+    );
+  }
+
+  if (error) {
+    return (
+      <li className="flex items-center space-x-2 text-red-500" role="alert">
+        <span className="sr-only">Error:</span>
+        {error}
+      </li>
+    );
+  }
+
+  if (!user) {
+    return (
+      <li className="flex items-center space-x-2 text-gray-500" role="alert">
+        <span className="sr-only">Notice:</span>
+        User not found
+      </li>
+    );
+  }
+
+  return (
+    <li className="flex items-center space-x-2">
+      <Avatar className="h-6 w-6">
+        <AvatarImage src={user.imageUrl} alt={user.username} />
+        <AvatarFallback>{user.username ? user.username.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+      </Avatar>
+      <span>{user.username}</span>
+    </li>
+  );
+};
+
+export const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, allComments, onScrollToComment }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [isReplying, setIsReplying] = useState(false);
@@ -94,6 +151,7 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
   };
 
   const isLikedByCurrentUser = comment.user_id_in_like.includes(currentUserId);
+  const hasLikes = comment.user_id_in_like.length > 0;
 
   return (
     <div className="mb-4">
@@ -164,9 +222,11 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
                   <ThumbsUp className={`h-4 w-4 mr-1 ${isLikedByCurrentUser ? 'text-red-500' : ''}`} />
                   {comment.likes}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => setShowLikes(!showLikes)}>
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
+                {hasLikes && (
+                  <Button variant="ghost" size="sm" onClick={() => setShowLikes(!showLikes)}>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" onClick={() => setIsReplying(!isReplying)}>
                   <Reply className="h-4 w-4 mr-1" />
                   Reply
@@ -177,7 +237,6 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
               isOpen={showLikes}
               onClose={() => setShowLikes(false)}
               likes={comment.user_id_in_like}
-              userNames={userNames}
             />
             <span className="text-xs text-gray-500 self-end mt-1">
               <Clock className="h-3 w-3 inline mr-1" />
@@ -190,13 +249,21 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
             </Button>
           )}
           {isReplying && (
-            <div className="mt-2">
+            <div className="mt-2 relative">
               <Textarea
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
                 placeholder="Write your reply..."
-                className="mb-2"
+                className="mb-2 pr-8"
               />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="absolute top-2 right-2"
+                onClick={() => setIsReplying(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
               <Button onClick={handleReply}>Post Reply</Button>
             </div>
           )}
@@ -206,18 +273,33 @@ const Comment = ({ comment, onReply, onLike, onEdit, onDelete, currentUserId, al
   );
 };
 
-export default function Component({ book = { _id: '', name: '', author: '', genre: '', shortdescription: '', longdescription: '', clicks: 0, imageurls: '' } }) {
-  const { user } = useUser();
- 
-  
+const CustomToast = ({ message, isVisible, onClose }) => {
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+          className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg"
+        >
+          {message}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
+const BookDetails = ({ book = { _id: '', name: '', author: '', genre: '', shortdescription: '', longdescription: '', clicks: 0, imageurls: '', tags: '' } }) => {
+  const { user } = useUser();
   const [bookid, setbookid] = useState(book._id);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [userNames, setUserNames] = useState({});
+  const [showToast, setShowToast] = useState(false);
   const commentRefs = useRef({});
   const commentsContainerRef = useRef(null);
+  const topCommentRef = useRef(null);
 
   const fetchComments = useCallback(async () => {
     if (!bookid) {
@@ -230,12 +312,6 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
       if (Array.isArray(response.data.comments)) {
         const sortedComments = response.data.comments.sort((a, b) => new Date(b.waqt) - new Date(a.waqt));
         setComments(sortedComments);
-        
-        // Fetch user names for all unique user IDs
-        const uniqueUserIds = [...new Set(sortedComments.flatMap(comment => 
-          [comment.user_id, ...comment.user_id_in_like]
-        ))];
-      
       } else {
         console.error("Fetched data is not an array:", response.data.comments);
         setComments([]);
@@ -247,8 +323,6 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
       setIsLoading(false);
     }
   }, [bookid]);
-
-
 
   useEffect(() => {
     fetchComments();
@@ -294,13 +368,16 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
         avatar: user.imageUrl,
         content: content.trim(),
         likes: 0,
-        parent_id: parentId,
+        parent_id:  parentId,
       };
 
       try {
-        const response = await axios.post("http://localhost:3001/comment/createcomment", replyData);
+        const  response = await axios.post("http://localhost:3001/comment/createcomment", replyData);
         if (response.status === 200) {
-          fetchComments();
+          await fetchComments();
+          if (topCommentRef.current) {
+            topCommentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         } else {
           console.error("Error creating reply:", response.data.message);
         }
@@ -313,7 +390,6 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
   const handleLike = async (commentId, userId) => {
     try {
       const response = await axios.post(`http://localhost:3001/comment/likes/${commentId}`, { userId });
-   
       if (response.status === 200) {
         fetchComments();
       } else {
@@ -343,8 +419,7 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
       if (response.status === 200) {
         fetchComments();
       } else {
-        console.error("Error deleting comment:", 
-        response.data.message);
+        console.error("Error deleting comment:", response.data.message);
       }
     } catch (error) {
       console.error("Error deleting comment:", error);
@@ -355,6 +430,12 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
     if (commentRefs.current[commentId]) {
       commentRefs.current[commentId].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2000);
   };
 
   return (
@@ -396,7 +477,10 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>Add to favorites</DropdownMenuItem>
-                    <DropdownMenuItem>Share</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleShare}>
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share
+                    </DropdownMenuItem>
                     <DropdownMenuItem>Report</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -414,9 +498,21 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
                 <p className="text-gray-600 leading-relaxed">{book.longdescription}</p>
               </div>
               
-              <div className="flex items-center text-gray-500">
-                <Eye className="h-5 w-5 mr-2" />
-                <span>{book.clicks} views</span>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-gray-500">
+                <div className="flex items-center mb-2 sm:mb-0">
+                  <Eye className="h-5 w-5 mr-2" />
+                  <span>{book.clicks} views</span>
+                </div>
+                {book.tags && (
+                  <div className="flex flex-wrap items-center">
+                    <Tag className="h-5 w-5 mr-2" />
+                    {book.tags.split(',').map((tag, index) => (
+                      <span key={index} className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2 mb-2">
+                        {tag.trim()}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </div>
@@ -451,8 +547,8 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
                   <Loader2 className="h-8 w-8 animate-spin text-green-500" />
                 </div>
               ) : (
-                comments.map((comment) => (
-                  <div key={comment._id} ref={(el) => commentRefs.current[comment._id] = el}>
+                comments.map((comment, index) => (
+                  <div key={comment._id} ref={index === 0 ? topCommentRef : (el) => commentRefs.current[comment._id] = el}>
                     <Comment
                       comment={comment}
                       onReply={handleReply}
@@ -462,8 +558,6 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
                       currentUserId={user?.id}
                       allComments={comments}
                       onScrollToComment={handleScrollToComment}
-                      user={user}
-                      userNames={userNames}
                     />
                   </div>
                 ))
@@ -472,6 +566,13 @@ export default function Component({ book = { _id: '', name: '', author: '', genr
           </CardContent>
         </Card>
       </div>
+      <CustomToast 
+        message="Link copied to clipboard!" 
+        isVisible={showToast} 
+        onClose={() => setShowToast(false)} 
+      />
     </div>
   );
-}
+};
+
+export default BookDetails;
